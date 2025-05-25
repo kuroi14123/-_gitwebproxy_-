@@ -2,18 +2,48 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>DuckDuckGo検索</title>
-  <script>
-    function searchDuckDuckGo() {
-      const query = document.getElementById("searchBox").value;
-      const url = "https://duckduckgo.com/?q=" + encodeURIComponent(query);
-      window.open(url, "_blank");
-    }
-  </script>
+  <title>クライアントサイド検索</title>
+  <script src="https://unpkg.com/lunr/lunr.js"></script>
 </head>
 <body>
-  <h1>DuckDuckGo検索</h1>
-  <input type="text" id="searchBox" placeholder="検索キーワードを入力">
-  <button onclick="searchDuckDuckGo()">検索</button>
+  <h1>検索エンジン（Webだけで動作）</h1>
+  <input type="text" id="search" placeholder="検索語を入力">
+  <ul id="results"></ul>
+
+  <script>
+    // データ（サンプル）
+    const documents = [
+      { id: '1', title: 'りんごの育て方', content: 'りんごは日当たりの良い場所で育てましょう。' },
+      { id: '2', title: 'バナナの栄養', content: 'バナナはカリウムが豊富です。' },
+      { id: '3', title: 'トマトの品種', content: 'トマトには多くの品種があります。' }
+    ];
+
+    // インデックス作成
+    const idx = lunr(function () {
+      this.ref('id');
+      this.field('title');
+      this.field('content');
+
+      documents.forEach(function (doc) {
+        this.add(doc);
+      }, this);
+    });
+
+    // 検索処理
+    document.getElementById('search').addEventListener('input', function () {
+      const query = this.value;
+      const results = idx.search(query);
+      const resultsList = document.getElementById('results');
+
+      resultsList.innerHTML = '';
+
+      results.forEach(result => {
+        const doc = documents.find(d => d.id === result.ref);
+        const li = document.createElement('li');
+        li.textContent = doc.title + " - " + doc.content;
+        resultsList.appendChild(li);
+      });
+    });
+  </script>
 </body>
 </html>
